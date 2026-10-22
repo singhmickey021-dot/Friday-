@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Friday</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:linear-gradient(180deg,#0a1120,#05080f);color:#e8f1ff;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+header{display:flex;align-items:center;gap:12px;padding:14px}
+.orb{width:52px;height:52px;border-radius:50%;background:radial-gradient(circle at 32% 28%,#a5f3fc,#22d3ee 45%,#0284c7);box-shadow:0 0 22px #22d3ee88;animation:b 3s infinite}
+.orb.on{background:radial-gradient(circle at 32% 28%,#bbf7d0,#34d399 45%,#059669);box-shadow:0 0 30px #34d399cc;animation:b .8s infinite}
+.orb.think{background:radial-gradient(circle at 32% 28%,#e9d5ff,#a78bfa 45%,#7c3aed);box-shadow:0 0 30px #a78bfacc;animation:b .6s infinite}
+@keyframes b{50%{transform:scale(1.08)}}
+h1{font-size:18px;letter-spacing:.25em;background:linear-gradient(90deg,#7dd3fc,#a5b4fc);-webkit-background-clip:text;background-clip:text;color:transparent}
+#status{font-size:12px;color:#7f93b8;margin-top:3px}
+.actions{margin-left:auto;display:flex;gap:8px}
+.ib{width:38px;height:38px;border-radius:10px;background:#ffffff08;border:1px solid #78aaff22;font-size:16px;color:#fff;cursor:pointer}
+.ib:hover{background:#ffffff15}
+#chat{flex:1;overflow-y:auto;padding:10px 14px;display:flex;flex-direction:column;gap:10px}
+.msg{max-width:82%;padding:10px 14px;border-radius:14px;font-size:15px;line-height:1.5;white-space:pre-wrap;word-wrap:break-word}
+.bot{align-self:flex-start;background:#ffffff0b;border:1px solid #78aaff22;border-bottom-left-radius:4px}
+.user{align-self:flex-end;background:linear-gradient(135deg,#6366f1,#22d3ee);color:#04121f;font-weight:500;border-bottom-right-radius:4px}
+.tag{display:block;font-size:10px;letter-spacing:.15em;color:#22d3ee;opacity:.7;margin-bottom:3px;text-transform:uppercase}
+.chips{display:flex;flex-wrap:wrap;gap:8px;padding:6px 14px 10px}
+.chips button{padding:7px 13px;border-radius:99px;font-size:12.5px;background:#ffffff0a;border:1px solid #78aaff22;color:#b9cbe8;cursor:pointer}
+.chips button:hover{background:#22d3ee1f;color:#e0f7ff}
+.composer{display:flex;gap:8px;padding:10px 14px 16px}
+#input{flex:1;height:46px;padding:0 15px;border-radius:13px;border:1px solid #78aaff22;background:#0a1120;color:#e8f1ff;font-size:15px;outline:none}
+#input:focus{border-color:#22d3ee88}
+#mic,#send{width:46px;height:46px;border-radius:13px;background:#ffffff0b;border:1px solid #78aaff22;font-size:18px;color:#fff;cursor:pointer}
+#mic.on{background:#34d3992e;border-color:#34d399cc}
+#send{background:linear-gradient(135deg,#6366f1,#22d3ee);color:#04121f;font-weight:700;border:none}
+.drawer{position:fixed;top:0;right:0;height:100dvh;width:min(320px,88vw);background:#0b1322;border-left:1px solid #78aaff22;padding:20px;transform:translateX(105%);transition:.25s;z-index:50;display:flex;flex-direction:column;gap:14px;overflow-y:auto}
+.drawer.open{transform:none}
+.drawer h2{font-size:14px;letter-spacing:.2em;color:#22d3ee;text-transform:uppercase}
+.drawer label{font-size:12px;color:#7f93b8;display:block;margin-bottom:5px}
+.drawer input,.drawer select{width:100%;height:40px;padding:0 12px;border-radius:9px;background:#ffffff0d;border:1px solid #78aaff22;color:#e8f1ff;font-size:14px;outline:none}
+.drawer button{height:42px;border-radius:10px;border:1px solid #78aaff22;background:#ffffff0b;color:#e8f1ff;font-size:14px;cursor:pointer}
+.drawer button.p{background:linear-gradient(135deg,#6366f1,#22d3ee);color:#04121f;font-weight:700;border:none}
+.drawer button.d{color:#fca5a5;border-color:#f871714d}
+.hint{font-size:11px;color:#61729a;line-height:1.5}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="orb" id="orb"></div>
+  <div>
+    <h1>FRIDAY</h1>
+    <div id="status">Standing by</div>
+  </div>
+  <div class="actions">
+    <button class="ib" id="voice">🔊</button>
+    <button class="ib" id="gear">⚙️</button>
+  </div>
+</header>
+
+<div id="chat"></div>
+
+<div class="chips" id="chips">
+  <button>what time is it</button>
+  <button>tell me a joke</button>
+  <button>open youtube</button>
+  <button>help</button>
+</div>
+
+<div class="composer">
+  <button id="mic">🎤</button>
+  <input id="input" placeholder="Ask Friday…" autocomplete="off">
+  <button id="send">➤</button>
+</div>
+
+<div class="drawer" id="drawer">
+  <h2>Settings</h2>
+  <div>
+    <label>OpenAI API Key</label>
+    <input id="key" type="password" placeholder="sk-...">
+    <div class="hint" style="margin-top:5px">सिर्फ़ आपके browser में save होगी</div>
+  </div>
+  <div>
+    <label>Model</label>
+    <select id="model">
+      <option value="gpt-4o-mini">gpt-4o-mini (fast)</option>
+      <option value="gpt-4o">gpt-4o (smart)</option>
+    </select>
+  </div>
+  <button class="p" id="save">Save</button>
+  <button class="d" id="clear">Clear Chat</button>
+  <button id="close">Close</button>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+const chat=$('chat'),input=$('input'),orb=$('orb'),status=$('status'),mic=$('mic');
+let apiKey=localStorage.getItem('f.key')||'';
+let model=localStorage.getItem('f.model')||'gpt-4o-mini';
+let voiceOut=localStorage.getItem('f.voice')!=='off';
+let history=[],listening=false,rec=null,busy=false;
+
+const JOKES=[
+"Why did the AI go to therapy? Too many unresolved dependencies.",
+"I'd tell you a UDP joke, but you might not get it.",
+"Why do programmers prefer dark mode? Light attracts bugs.",
+"There are 10 kinds of people: those who understand binary and those who don't."
+];
+const SITES={youtube:"https://youtube.com",google:"https://google.com",github:"https://github.com",gmail:"https://mail.google.com"};
+
+// ---------- SPEAK ----------
+function speak(t){
+  if(!voiceOut||!window.speechSynthesis||!t)return;
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(t);
+  u.rate=1;u.pitch=1.05;u.lang='hi-IN';
+  u.onstart=()=>setOrb('speaking');
+  u.onend=()=>setOrb('idle');
+  u.onerror=()=>setOrb('idle');
+  speechSynthesis.speak(u);
+}
+function setOrb(m){
+  orb.className='orb'+(m==='listening'?' on':m==='thinking'?' think':'');
+  status.innerHTML={idle:'Standing by',listening:'<b style="color:#34d399">Listening…</b>',thinking:'<b style="color:#a78bfa">Thinking…</b>',speaking:'<b style="color:#f59e0b">Speaking…</b>'}[m]||'Standing by';
+}
+
+// ---------- CHAT ----------
+function addMsg(role,text){
+  $('chips').style.display='none';
+  const d=document.createElement('div');
+  d.className='msg '+role;
+  if(role==='bot'){const t=document.createElement('span');t.className='tag';t.textContent='Friday';d.appendChild(t);}
+  d.appendChild(document.createTextNode(text));
+  chat.appendChild(d);chat.scrollTop=chat.scrollHeight;
+  return d;
+}
+function reply(t){addMsg('bot',t);speak(t);}
+function typing(){
+  const d=document.createElement('div');
+  d.className='msg bot';d.textContent='…';
+  chat.appendChild(d);chat.scrollTop=chat.scrollHeight;
+  return d;
+}
+
+// ---------- LOCAL COMMANDS ----------
+function local(c){
+  c=c.toLowerCase().trim();
+  if(!c)return null;
+  const w=(...ws)=>new RegExp('\\b('+ws.join('|')+')\\b','i').test(c);
+
+  if(w('exit','quit','bye','goodbye')){reply('Goodbye, Boss.');return 'exit';}
+  if(w('help','commands')){reply('मैं ये कर सकती हूँ:\n• time / date\n• joke\n• open youtube / google / github / gmail\n• search <query>\n• clear\n• system\nबाकी सब AI को जाता है (API key डालें)।');return 'ok';}
+  if(w('time')){reply("It's "+new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})+".");return 'ok';}
+  if(w('date','today')){reply('Today is '+new Date().toLocaleDateString([],{weekday:'long',month:'long',day:'numeric'})+".");return 'ok';}
+  if(w('joke')){reply(JOKES[Math.floor(Math.random()*JOKES.length)]);return 'ok';}
+  if(w('clear','reset')){chat.innerHTML='';history=[];$('chips').style.display='flex';reply('Cleared.');return 'ok';}
+  if(w('system','browser')){reply('You are on '+(navigator.platform||'unknown')+'.');return 'ok';}
+
+  const m=c.match(/\bopen\s+(youtube|google|github|gmail)\b/);
+  if(m){window.open(SITES[m[1]],'_blank');reply('Opening '+m[1]+'.');return 'ok';}
+
+  if(w('search','google')){
+    const q=c.replace(/\b(search|for|google|please)\b/g,'').trim();
+    if(q){window.open('https://www.google.com/search?q='+encodeURIComponent(q),'_blank');reply('Searching for '+q+'.');return 'ok';}
+  }
+  return null;
+}
+
+// ---------- LLM ----------
+async function askAI(text){
+  if(!apiKey)return fallback(text);
+  history.push({role:'user',content:text});
+  if(history.length>14)history=history.slice(-14);
+  const r=await fetch('https://api.openai.com/v1/chat/completions',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
+    body:JSON.stringify({
+      model:model,
+      max_tokens:200,
+      messages:[{role:'system',content:'You are Friday, a witty loyal AI assistant. Call the user Boss. Reply short, spoken-friendly, no markdown, no emojis.'},...history]
+    })
+  });
+  if(!r.ok)throw new Error('API '+r.status);
+  const d=await r.json();
+  const out=(d.choices?.[0]?.message?.content||'').trim();
+  if(!out)throw new Error('empty');
+  history.push({role:'assistant',content:out});
+  return out;
+}
+function fallback(t){
+  const c=t.toLowerCase();
+  if(/\b(hello|hi|hey|namaste)\b/.test(c))return 'Hello Boss. Main Friday hoon. Settings me API key dalo toh puri baat kar sakti hoon.';
+  if(/who.*you|tumhara naam/.test(c))return 'Main Friday hoon, aapki assistant.';
+  if(/thank/.test(c))return 'Anytime, Boss.';
+  return 'Main abhi sirf basic commands kar sakti hoon. ⚙️ Settings me API key daalo toh puri baat karungi. "help" bolo commands ke liye.';
+}
+
+// ---------- SUBMIT ----------
+async function submit(raw){
+  const text=(raw||input.value).trim();
+  if(!text||busy)return;
+  input.value='';
+  addMsg('user',text);
+
+  const r=local(text);
+  if(r==='ok'||r==='exit')return;
+
+  busy=true;setOrb('thinking');
+  const t=typing();
+  try{
+    const ans=await askAI(text);
+    t.remove();addMsg('bot',ans);speak(ans);
+  }catch(e){
+    t.remove();const m='Sorry Boss, dimaag tak nahi pahunch payi. ('+e.message+')';addMsg('bot',m);speak(m);
+  }finally{
+    busy=false;if(orb.classList.contains('think'))setOrb('idle');
+  }
+}
+
+// ---------- MIC ----------
+function buildRec(){
+  if(!SR)return null;
+  const r=new SR();
+  r.lang='hi-IN';r.continuous=false;r.interimResults=true;
+  let submitted=false;
+  r.onstart=()=>{listening=true;submitted=false;mic.classList.add('on');setOrb('listening');speechSynthesis?.cancel();};
+  r.onresult=e=>{
+    let final='';
+    for(let i=e.resultIndex;i<e.results.length;i++)if(e.results[i].isFinal)final+=e.results[i][0].transcript;
+    if(final&&!submitted){submitted=true;submit(final);try{r.stop();}catch{}}
+  };
+  r.onerror=e=>{
+    if(e.error==='not-allowed')reply('Mic blocked. Chrome me Allow karo.');
+  };
+  r.onend=()=>{listening=false;mic.classList.remove('on');if(orb.classList.contains('on'))setOrb('idle');};
+  return r;
+}
+function toggleMic(){
+  if(!SR){reply('Voice isi browser me nahi chalega. Chrome try karo.');return;}
+  if(!window.isSecureContext){reply('Mic ke liye HTTPS ya localhost chahiye.');return;}
+  rec=rec||buildRec();
+  if(listening){try{rec.stop();}catch{}}
+  else{try{rec.start();}catch{}}
+}
+
+// ---------- SETTINGS ----------
+function openDrawer(){$('key').value=apiKey;$('model').value=model;$('drawer').classList.add('open');}
+function closeDrawer(){$('drawer').classList.remove('open');}
+
+// ---------- WIRING ----------
+$('send').onclick=()=>submit();
+input.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();submit();}};
+mic.onclick=toggleMic;
+$('voice').onclick=()=>{
+  voiceOut=!voiceOut;
+  localStorage.setItem('f.voice',voiceOut?'on':'off');
+  $('voice').textContent=voiceOut?'🔊':'🔇';
+  if(!voiceOut)speechSynthesis?.cancel();
+};
+$('gear').onclick=openDrawer;
+$('close').onclick=closeDrawer;
+$('save').onclick=()=>{
+  apiKey=$('key').value.trim();
+  model=$('model').value;
+  localStorage.setItem('f.key',apiKey);
+  localStorage.setItem('f.model',model);
+  closeDrawer();
+  reply(apiKey?'Settings saved. Ab puri baat kar sakti hoon!':'Saved. Abhi local mode me hoon.');
+};
+$('clear').onclick=()=>{chat.innerHTML='';history=[];$('chips').style.display='flex';closeDrawer();};
+$('chips').onclick=e=>{const b=e.target.closest('button');if(b)submit(b.textContent);};
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeDrawer();if(listening)try{rec.stop()}catch{}}});
+
+// ---------- BOOT ----------
+$('voice').textContent=voiceOut?'🔊':'🔇';
+const hr=new Date().getHours();
+const greet=hr<12?'Good morning':hr<18?'Good afternoon':'Good evening';
+setTimeout(()=>reply(greet+', Boss. Friday online hai.'),400);
+if(!SR)setTimeout(()=>addMsg('bot','Note: is browser me voice nahi hai. Chrome use karo.'),1500);
+</script>
+</body>
+</html>
